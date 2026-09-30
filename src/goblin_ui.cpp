@@ -75,19 +75,24 @@ void drawAirScreen(TFT_eSPI& tft, const WifiSnapshot& s) {
     tft.fillScreen(TFT_BLACK);
     header(tft, "AIR SNIFFER");
 
-    row(tft, 58, "Access points", String(s.accessPoints), TFT_GREEN);
-    row(tft, 82, "Open networks", String(s.openNetworks), s.openNetworks ? TFT_YELLOW : TFT_GREEN);
-    row(tft, 106, "Strongest", String(s.strongestRssi) + " dBm");
-    row(tft, 130, "Busiest channel", String(s.busiestChannel));
-    row(tft, 154, "APs on busiest", String(s.busiestCount));
+    row(tft, 45, "Access points", String(s.accessPoints), TFT_GREEN);
+    row(tft, 61, "Open networks", String(s.openNetworks), s.openNetworks ? TFT_YELLOW : TFT_GREEN);
+    row(tft, 77, "Strongest", String(s.strongestRssi) + " dBm");
+    row(tft, 93, "Busiest channel", String(s.busiestChannel));
+    row(tft, 109, "APs on busiest", String(s.busiestCount));
 
-    tft.drawRoundRect(10, 178, tft.width()-20, 44, 6, TFT_DARKGREY);
     tft.setTextDatum(MC_DATUM);
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    tft.drawString("GOBLIN GUARD FOUNDATION ONLINE", tft.width()/2, 199);
+    tft.drawString("GOBLIN GUARD", tft.width()/2, 132);
+    row(tft, 150, "Inventory total", String(static_cast<unsigned>(s.inventoryCount)), TFT_GREEN);
+    row(tft, 168, "Known APs", String(static_cast<unsigned>(s.knownCount)), TFT_GREEN);
+    row(tft, 186, "Unknown APs", String(static_cast<unsigned>(s.unknownCount)), TFT_YELLOW);
+    row(tft, 204, "New this scan", String(static_cast<unsigned>(s.newCount)), TFT_YELLOW);
 
+    tft.setTextDatum(MC_DATUM);
     tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-    tft.drawString("Tap to rescan", tft.width()/2, 232);
+    tft.drawString(s.scanFailed ? "Scan failed - tap to retry" :
+        (s.inventoryIncomplete ? "Inventory incomplete - see serial" : "Tap to rescan"), tft.width()/2, 232);
 }
 
 void drawTouchMarker(TFT_eSPI& tft, int16_t x, int16_t y) {
