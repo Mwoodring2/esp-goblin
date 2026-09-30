@@ -1,0 +1,6 @@
+.pio/
+.vscode/
+dist/*.map
+dist/*.elf
+__pycache__/
+*.log

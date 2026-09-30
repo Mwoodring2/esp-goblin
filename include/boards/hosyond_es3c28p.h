@@ -1,0 +1,55 @@
+#pragma once
+
+// ESP Goblin — Hosyond / LCDWiki ES3C28P reference profile
+// 2.8" IPS, 240x320, ESP32-S3 N16R8
+// LCD: ILI9341V over SPI
+// Touch: FT6336G over I2C
+// SD: 4-bit SDIO / SD_MMC
+// Audio: ES8311 + amplifier
+//
+// Manufacturer pinout:
+// LCD: CS=10, DC=46, SCLK=12, MOSI=11, MISO=13, BL=45, RST shared with EN
+// Touch: SDA=16, SCL=15, RST=18, INT=17
+// SD: CLK=38, CMD=40, D0=39, D1=41, D2=48, D3=47
+// RGB: 42
+// Audio: AMP_EN=1, MCLK=4, BCLK=5, DOUT=8, WS=7, DIN=6
+// Battery ADC: 9
+// Expansion: 2, 3, 14, 21
+
+#define ESP_GOBLIN_BOARD_ID "hosyond_es3c28p"
+#define ESP_GOBLIN_BOARD_NAME "Hosyond ES3C28P 2.8 ESP32-S3"
+
+#define ESP_GOBLIN_LCD_WIDTH 240
+#define ESP_GOBLIN_LCD_HEIGHT 320
+
+#define ESP_GOBLIN_LCD_CS 10
+#define ESP_GOBLIN_LCD_DC 46
+#define ESP_GOBLIN_LCD_SCLK 12
+#define ESP_GOBLIN_LCD_MOSI 11
+#define ESP_GOBLIN_LCD_MISO 13
+#define ESP_GOBLIN_LCD_BL 45
+#define ESP_GOBLIN_LCD_RST -1
+
+#define ESP_GOBLIN_TOUCH_SDA 16
+#define ESP_GOBLIN_TOUCH_SCL 15
+#define ESP_GOBLIN_TOUCH_RST 18
+#define ESP_GOBLIN_TOUCH_INT 17
+#define ESP_GOBLIN_TOUCH_ADDR 0x38
+
+#define ESP_GOBLIN_SD_CLK 38
+#define ESP_GOBLIN_SD_CMD 40
+#define ESP_GOBLIN_SD_D0 39
+#define ESP_GOBLIN_SD_D1 41
+#define ESP_GOBLIN_SD_D2 48
+#define ESP_GOBLIN_SD_D3 47
+
+#define ESP_GOBLIN_RGB_PIN 42
+
+#define ESP_GOBLIN_AUDIO_AMP_EN 1
+#define ESP_GOBLIN_AUDIO_MCLK 4
+#define ESP_GOBLIN_AUDIO_BCLK 5
+#define ESP_GOBLIN_AUDIO_DOUT 8
+#define ESP_GOBLIN_AUDIO_WS 7
+#define ESP_GOBLIN_AUDIO_DIN 6
+
+#define ESP_GOBLIN_BATTERY_ADC 9

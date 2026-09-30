@@ -1,0 +1,30 @@
+name: Build ES3C28P
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    tags: [ "v*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade platformio esptool
+
+      - name: Build ESP Goblin
+        run: pio run -e hosyond_es3c28p
+
+      - name: Upload merged binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ESP-Goblin-ES3C28P
+          path: dist/ESP-Goblin-ES3C28P-v0.1.0-alpha.0.bin
