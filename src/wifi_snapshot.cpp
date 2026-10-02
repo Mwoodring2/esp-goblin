@@ -1,13 +1,16 @@
+#include "goblin_ble.h"
 #include "wifi_snapshot.h"
 #include <WiFi.h>
 #include <esp_timer.h>
+#include "goblin_guard.h"
+#include "wifi_promiscuous_monitor.h"
 
 AccessPointInventory& goblinApInventory() {
     static AccessPointInventory inventory;
     return inventory;
 }
 
-WifiSnapshot goblinScanWifi() {
+static WifiSnapshot performWifiScan() {
     WifiSnapshot s;
     AccessPointInventory& inventory = goblinApInventory();
     inventory.beginScan();
@@ -31,9 +34,10 @@ WifiSnapshot goblinScanWifi() {
         const auto result = inventory.observe(bssid, ssid.c_str(), WiFi.channel(i),
                                                WiFi.RSSI(i), WiFi.encryptionType(i), now);
         if (result == AccessPointInventory::MergeResult::New) {
-            Serial.printf("[guard] NEW AP %02X:%02X:%02X:%02X:%02X:%02X ssid=\"%s\" channel=%d rssi=%d auth=%d state=Unknown\n",
+            Serial.printf("[guard] NEW AP %02X:%02X:%02X:%02X:%02X:%02X ssid=\"%s\" channel=%d rssi=%d auth=%d state=%s\n",
                 bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5],
-                ssid.c_str(), WiFi.channel(i), WiFi.RSSI(i), static_cast<int>(WiFi.encryptionType(i)));
+                ssid.c_str(), WiFi.channel(i), WiFi.RSSI(i), static_cast<int>(WiFi.encryptionType(i)),
+                isTrustedAccessPoint(bssid) ? "Known" : "Unknown");
         } else if (result == AccessPointInventory::MergeResult::Invalid ||
                    result == AccessPointInventory::MergeResult::OutOfMemory) {
             s.inventoryIncomplete = true;
@@ -60,6 +64,7 @@ WifiSnapshot goblinScanWifi() {
         }
     }
 
+    goblinGuardAnalyze();
     s.inventoryCount = inventory.totalCount();
     s.knownCount = inventory.knownCount();
     s.unknownCount = inventory.unknownCount();
@@ -69,4 +74,18 @@ WifiSnapshot goblinScanWifi() {
         static_cast<unsigned>(s.unknownCount), static_cast<unsigned>(s.newCount));
     WiFi.scanDelete();
     return s;
+}
+
+WifiSnapshot goblinScanWifi() {
+    Serial.println("[air] AP scan requested; pausing monitor if active");
+    GoblinApScanPause pause;
+    WifiSnapshot snapshot;
+    if (!pause.safeToScan() || !goblinWifiMonitor().prepareForScan()) {
+        Serial.println("[air] AP scan aborted: monitor could not stop safely");
+        snapshot.scanFailed = true;
+    } else snapshot = performWifiScan();
+    snapshot.monitorRestoreFailed = !pause.restore();
+    if (snapshot.monitorRestoreFailed) Serial.println("[air] monitor restore after AP scan failed; use START to retry");
+    else Serial.println("[air] AP scan complete; previous monitor state restored");
+    return snapshot;
 }

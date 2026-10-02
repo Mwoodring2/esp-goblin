@@ -13,6 +13,7 @@ struct WifiSnapshot {
     size_t newCount = 0;
     bool scanFailed = false;
     bool inventoryIncomplete = false;
+    bool monitorRestoreFailed = false;
 };
 
 WifiSnapshot goblinScanWifi();

@@ -1,3 +1,5 @@
+#include "goblin_ble.h"
+#include "goblin_events.h"
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 
@@ -5,11 +7,14 @@
 #include "touch_ft6336.h"
 #include "wifi_snapshot.h"
 #include "goblin_ui.h"
+#include "goblin_guard.h"
+#include "goblin_air.h"
 
 TFT_eSPI tft;
 static bool touchOk = false;
 static bool showingAir = false;
 static uint32_t lastTouchMs = 0;
+static bool touchHeld = false;
 
 static void serialHardwareReport() {
     Serial.println();
@@ -32,7 +37,7 @@ static void rescan() {
     tft.drawString("SNIFFING THE AIR...", tft.width()/2, tft.height()/2);
 
     const WifiSnapshot s = goblinScanWifi();
-    drawAirScreen(tft, s);
+    goblinUiShowScan(tft, s);
 
     Serial.printf("[wifi] aps=%d open=%d strongest=%d channel=%d count=%d\n",
         s.accessPoints, s.openNetworks, s.strongestRssi, s.busiestChannel, s.busiestCount);
@@ -41,6 +46,8 @@ static void rescan() {
 void setup() {
     Serial.begin(115200);
     delay(400);
+    goblinGuardBegin();
+    goblinEventsBegin();
 
     pinMode(GoblinBoard::LCD_BL, OUTPUT);
     digitalWrite(GoblinBoard::LCD_BL, HIGH);
@@ -58,23 +65,32 @@ void setup() {
 }
 
 void loop() {
+    goblinBleTick();
+    goblinAirTick();
     GoblinTouchPoint p;
-    if (touchOk && goblinTouchRead(p) && p.pressed) {
+    const bool touchRead = touchOk && goblinTouchRead(p);
+    if (touchRead && p.pressed) {
         const uint32_t now = millis();
 
-        if (now - lastTouchMs > 350) {
+        if (!touchHeld && now - lastTouchMs > 200) {
             lastTouchMs = now;
 
             if (!showingAir) {
                 showingAir = true;
                 rescan();
             } else {
-                rescan();
+                const auto action = goblinUiTouch(tft, p.x, p.y);
+                if (action == GoblinUiAction::Scan) rescan();
+                else if (action == GoblinUiAction::StartMonitor) { goblinRadio().start(goblinRadioNow()); goblinUiRefresh(tft); }
+                else if (action == GoblinUiAction::StopMonitor) { goblinRadio().stop(goblinRadioNow()); goblinUiRefresh(tft); }
             }
         }
+        touchHeld = true;
+    } else if (touchRead) touchHeld = false;
 
-        drawTouchMarker(tft, p.x, p.y);
-    }
-
-    delay(15);
+    if (showingAir) goblinUiTick(tft, touchHeld);
+    goblinBleTick();
+    goblinAirTick();
+    goblinEventsTick();
+    delay(goblinWifiMonitor().running() ? 2 : 15);
 }

@@ -28,6 +28,8 @@ public:
     MergeResult observe(const uint8_t* bssid, const char* ssid, int channel,
                         int rssi, int auth_mode, uint64_t now);
     const AccessPointRecord* find(const uint8_t* bssid) const;
+    const AccessPointRecord* at(size_t index) const;
+    bool seenThisScan(const uint8_t* bssid) const;
     bool setKnown(const uint8_t* bssid, bool known);
     size_t totalCount() const { return total_; }
     size_t knownCount() const { return known_; }

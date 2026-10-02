@@ -1,9 +1,16 @@
+#include "goblin_ble.h"
 #include "security_snapshot.h"
 
 #include <WiFi.h>
+#include "wifi_promiscuous_monitor.h"
 
 WifiSnapshot scanWifiSnapshot() {
     WifiSnapshot snapshot;
+    GoblinApScanPause pause;
+    if (!pause.safeToScan() || !goblinWifiMonitor().prepareForScan()) {
+        Serial.println("[air] legacy AP scan aborted: monitor could not stop");
+        return snapshot;
+    }
 
     WiFi.mode(WIFI_STA);
     WiFi.disconnect(true, true);

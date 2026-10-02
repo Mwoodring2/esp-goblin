@@ -3,6 +3,17 @@
 #include <cstring>
 #include <new>
 
+const AccessPointRecord* AccessPointInventory::at(size_t index) const {
+    const Node* node = head_;
+    while (node && index--) node = node->next;
+    return node ? &node->record : nullptr;
+}
+
+bool AccessPointInventory::seenThisScan(const uint8_t* bssid) const {
+    const Node* node = findNode(bssid);
+    return node && node->seen_this_scan;
+}
+
 AccessPointInventory::~AccessPointInventory() {
     while (head_) {
         Node* next = head_->next;
